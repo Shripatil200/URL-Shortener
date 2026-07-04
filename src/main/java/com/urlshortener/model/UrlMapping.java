@@ -2,6 +2,9 @@ package com.urlshortener.model;
 
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +21,9 @@ import java.time.LocalDateTime;
  */
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class UrlMapping {
 
 
@@ -54,6 +60,7 @@ public class UrlMapping {
      *       against error caused by exceptionally long URLs.
      */
     @Lob
+    @Column(nullable = false)
     private String originalUrl;
 
     /**
