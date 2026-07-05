@@ -3,7 +3,6 @@ package com.urlshortener.service;
 // The 'stereotype' package contains annotations that define the role of beans.
 import com.urlshortener.model.UrlMapping;
 import com.urlshortener.repository.UrlMappingRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +30,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class UrlShortnerService {
+public class UrlShortenerService {
 
     /**
      * This field will hold the reference to our repository.
