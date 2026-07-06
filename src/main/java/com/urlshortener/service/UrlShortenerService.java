@@ -1,6 +1,7 @@
 package com.urlshortener.service;
 
 // The 'stereotype' package contains annotations that define the role of beans.
+import com.urlshortener.exception.UrlNotFoundException;
 import com.urlshortener.model.UrlMapping;
 import com.urlshortener.repository.UrlMappingRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
 
 /**
  * This class represents core business logic layer for our URL shortener.
@@ -93,6 +95,27 @@ public class UrlShortenerService {
         urlMappingRepository.save(savedEntity);
         return shortCode;
 
+    }
+
+
+    /**
+     * Finds the original URL for a given short code and increments its click count.
+     * The @Transactional annotation ensures this is an atomic operation.
+     *
+     * @param shortCode The unique code representing the shortened URL.
+     * @return The original, long URL to redirect to.
+     * @throws UrlNotFoundException if the short code does not exist in the database.
+     */
+    @Transactional
+    public String getOriginalUrlAndIncrementClicks(String shortCode) {
+        UrlMapping urlMapping = urlMappingRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException("URL not found for short code: " + shortCode));
+
+            urlMapping.setClickCount(urlMapping.getClickCount() + 1);
+
+            urlMappingRepository.save(urlMapping);
+
+        return urlMapping.getOriginalUrl();
     }
 
 
