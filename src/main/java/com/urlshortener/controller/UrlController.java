@@ -2,6 +2,7 @@ package com.urlshortener.controller;
 
 import com.urlshortener.dto.ShortenUrlRequest;
 import com.urlshortener.dto.ShortenUrlResponse;
+import com.urlshortener.dto.UrlStatsResponse;
 import com.urlshortener.service.UrlShortenerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +38,13 @@ public class UrlController {
      *         returns a 400 Bad Request error before our method is even called.
      * @return A ResponseEntity containing the ShortenUrlResponse DTO and an HTTP status of 201 Created.
      */
-    @PostMapping("api/v1/url/shorten")
+    @PostMapping("/api/v1/url/shorten")
     public ResponseEntity<ShortenUrlResponse> shortenUrl(@Valid @RequestBody ShortenUrlRequest request) {
-        String shortCode = urlShortenerService.shortenUrl(request.url());
+
+        String shortCode = urlShortenerService.shortenUrl(request.url(), request.customAlias());
 
         String fullShortUrl = "http://localhost:8080/" + shortCode;
-
         ShortenUrlResponse response = new ShortenUrlResponse(fullShortUrl);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

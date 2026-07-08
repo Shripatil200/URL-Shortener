@@ -52,25 +52,17 @@ public class UrlShortenerService {
 
 
     /**
-     *  The core business logic for creating a short URL.
-     *  This method will orchestrate the entire process:
-     *  1. Create a UrlMapping entity.
-     *  2. Save it to the database to generate a unique primary key (ID).
-     *  3. Convert this ID into a unique base-62 short code.
-     *  4. Update the entity with the new short code.
-     *  5. Return the generated short code.
+     * Shortens a given URL.
      *
-     *  By default, repository methods are transactional. However, our method orchestrates
-     *  multiple database operations. Wrapping it in @Transactional ensures that these
-     *  operations are executed as a single, atomic unit. If any part fails, all
-     *  previous operations in the method are rolled back.
+     * If a customAlias is provided, it will be used as the shortCode.
+     * If customAlias is null or empty, a unique shortCode will be generated.
      *
-     * @param originalUrl The long URL that needs to be shortened. This is the input from the user.
-     * @return The generated unique short code (e.g., "aB1cDe") corresponding to the originalUrl.
+     * @param originalUrl The long URL to shorten.
+     * @param customAlias An optional user-defined short code.
+     * @return The final shortCode (either the custom alias or the generated one).
      */
-
     @Transactional
-    public String shortenUrl(String originalUrl){
+    public String shortenUrl(String originalUrl, String customAlias) {
 
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setOriginalUrl(originalUrl);
@@ -78,25 +70,15 @@ public class UrlShortenerService {
 
         UrlMapping savedEntity = urlMappingRepository.save(urlMapping);
 
-        /*
-        Now we take unique ID from the saved entity and convert it
-        into our base-62 short code.
-         */
-        String shortCode = encodedBase62(savedEntity.getId());
-
-        /*
-        We are now updating our managed entity instance with the generated short code.
-        The 'setShortCode()' method was automatically generated for us by lombok's @Setter annotation.
-        By calling this method, we are changing the state of the 'savedEntity' object in memory.
-        JPA's Persistence Context will detect this change (a process called dirty checking).
-         */
-
+        // This generated code will be our fallback if no custom alias is provided.
+        String shortCode = encodeBase62(savedEntity.getId());
         savedEntity.setShortCode(shortCode);
 
         urlMappingRepository.save(savedEntity);
-        return shortCode;
 
+        return shortCode;
     }
+
 
 
     /**
@@ -112,9 +94,8 @@ public class UrlShortenerService {
         UrlMapping urlMapping = urlMappingRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("URL not found for short code: " + shortCode));
 
-            urlMapping.setClickCount(urlMapping.getClickCount() + 1);
-
-            urlMappingRepository.save(urlMapping);
+        urlMapping.setClickCount(urlMapping.getClickCount() + 1);
+        urlMappingRepository.save(urlMapping);
 
         return urlMapping.getOriginalUrl();
     }
@@ -130,7 +111,6 @@ public class UrlShortenerService {
      * @throws UrlNotFoundException if the short code does not exist.
      */
     public UrlStatsResponse getStats(String shortCode) {
-
         UrlMapping urlMapping = urlMappingRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("No statistics found for short code: " + shortCode));
 
@@ -156,34 +136,20 @@ public class UrlShortenerService {
      * @return The base-62 encoded string.
      */
 
-    private String encodedBase62(Long number){
-        //if number is 0 return the first character of our character set.
-        if(0 == number){
+    private String encodeBase62(Long number) {
+        if (number == 0) {
             return String.valueOf(BASE62_CHARS.charAt(0));
         }
 
-        // StringBuilder is highly efficient for concatenating string in a loop.
         StringBuilder sb = new StringBuilder();
-        long num = number; // Use a mutable copy of the number for our calculations.
+        long num = number;
 
-        // This is the core base conversion algorithm
-        while(num > 0) {
-            // The modulo operator (%) gives the reminder of a division.
-            // This reminder is our index into the BASE62_CHARS string.
-
-            int reminder = (int) (num % 62);
-
-            // append the character corresponding to the reminder to our result.
-            sb.append(BASE62_CHARS.charAt(reminder));
-
-            // Perform integer division by 62 to prepare for the next iteration.
+        while (num > 0) {
+            int remainder = (int) (num % 62);
+            sb.append(BASE62_CHARS.charAt(remainder));
             num /= 62;
         }
 
-        // The algorithm builds the string in reverse order (from lest significant
-        // "digit" to most significant). We must reverse it before returning.
-        // For example, the number 62 would produce "01" during the loop, which
-        // needs to be reversed to the corrected "10" representation.
         return sb.reverse().toString();
     }
 
