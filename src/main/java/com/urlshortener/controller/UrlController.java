@@ -5,7 +5,6 @@ import com.urlshortener.dto.ShortenUrlResponse;
 import com.urlshortener.service.UrlShortenerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,5 +69,23 @@ public class UrlController {
         String originalUrl = urlShortenerService.getOriginalUrlAndIncrementClicks(shortCode);
 
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(originalUrl)).build();
+    }
+
+    /**
+     * This endpoint retrieves statistics for a specific short URL.
+     *
+     * @GetMapping("/api/v1/url/stats/{shortCode}"): Maps HTTP GET requests to this method.
+     *   - The path is namespaced under our API standard /api/v1/url.
+     *   - 'stats' clearly indicates the purpose of the endpoint.
+     *   - {shortCode} is a path variable to specify which URL's stats to fetch.
+     *
+     * @param shortCode The short code captured from the URL path via @PathVariable.
+     * @return A ResponseEntity containing the statistics in a UrlStatsResponse DTO.
+     *         The actual implementation will be built in the following tasks.
+     */
+    @GetMapping("/api/v1/url/stats/{shortCode}")
+    public ResponseEntity<UrlStatsResponse> getUrlStats(@PathVariable String shortCode) {
+
+        return null;
     }
 }
