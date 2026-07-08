@@ -1,6 +1,8 @@
 package com.urlshortener.controller;
 
 
+import com.urlshortener.dto.UrlStatsResponse;
+import com.urlshortener.exception.UrlNotFoundException;
 import com.urlshortener.service.UrlShortenerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -45,6 +47,32 @@ public class PageController {
         model.addAttribute("originalUrl", longUrl);
 
         model.addAttribute("shortUrlResult", fullShortUrl);
+        return "index";
+    }
+
+    /**
+     * Handles the form submission for checking URL statistics.
+     *
+     * @PostMapping("/check-stats"): Maps POST requests from our new stats form to this method.
+     * @param shortCode The @RequestParam("checkShortCode") annotation tells Spring to find the
+     *                  form data with the key "checkShortCode" (matching our input's 'name' attribute)
+     *                  and inject its value into this String parameter.
+     * @param model     The Model object, which we will use in the next task to pass the
+     *                  retrieved statistics back to the view for rendering.
+     * @return The string "index", telling Spring to re-render the index.html page to display the results.
+     */
+    @PostMapping("/check-stats")
+    public String handleStatsCheckForm(@RequestParam("checkShortCode") String shortCode, Model model) {
+
+
+        try {
+
+            UrlStatsResponse stats = urlShortenerService.getStats(shortCode);
+            model.addAttribute("urlStats", stats);
+        } catch (UrlNotFoundException e) {
+            model.addAttribute("statsError", "Statistics not found for short code: " + shortCode);
+        }
+
         return "index";
     }
 }

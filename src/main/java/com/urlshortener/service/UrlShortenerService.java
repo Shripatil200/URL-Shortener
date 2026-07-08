@@ -1,6 +1,7 @@
 package com.urlshortener.service;
 
 // The 'stereotype' package contains annotations that define the role of beans.
+import com.urlshortener.dto.UrlStatsResponse;
 import com.urlshortener.exception.UrlNotFoundException;
 import com.urlshortener.model.UrlMapping;
 import com.urlshortener.repository.UrlMappingRepository;
@@ -117,6 +118,33 @@ public class UrlShortenerService {
 
         return urlMapping.getOriginalUrl();
     }
+
+
+    /**
+     * Retrieves statistics for a given short code.
+     * This is a read-only operation and doesn't need to be @Transactional by itself,
+     * but adding it is harmless and keeps it consistent with other data-access methods.
+     *
+     * @param shortCode The unique code to look up.
+     * @return A UrlStatsResponse DTO containing the statistics.
+     * @throws UrlNotFoundException if the short code does not exist.
+     */
+    public UrlStatsResponse getStats(String shortCode) {
+
+        UrlMapping urlMapping = urlMappingRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException("No statistics found for short code: " + shortCode));
+
+        String fullShortUrl = "http://localhost:8080/" + urlMapping.getShortCode();
+
+        return new UrlStatsResponse(
+                urlMapping.getOriginalUrl(),
+                fullShortUrl,
+                urlMapping.getCreationDate(),
+                urlMapping.getClickCount()
+        );
+    }
+
+    // --- NEWLY ADDED METHOD END ---
 
 
     /**

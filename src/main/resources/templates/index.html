@@ -14,13 +14,16 @@
         .result p { margin: 5px 0; }
         .result a { color: #0056b3; text-decoration: none; font-weight: bold; }
         .result a:hover { text-decoration: underline; }
+        hr { border: 0; height: 1px; background-color: #ccc; margin: 40px 0; }
     </style>
 </head>
 <body>
 
 <h1>Welcome to the URL Shortener!</h1>
 
+<!-- Existing URL Shortening Form -->
 <form th:action="@{/shorten-web}" method="POST">
+    <!-- ... form content ... -->
     <div>
         <label for="longUrl">Enter a long URL to shorten:</label>
     </div>
@@ -32,22 +35,57 @@
     </div>
 </form>
 
+<!-- Existing Results Display Area -->
 <div class="result" th:if="${shortUrlResult != null}">
+    <!-- ... results content ... -->
     <h2>Success! Here is your short URL:</h2>
-
     <p>
         Original URL:
-
         <span th:text="${originalUrl}">https://example.com/original-url-goes-here</span>
     </p>
-
     <p>
         Short URL:
         <a th:href="${shortUrlResult}" th:text="${shortUrlResult}" target="_blank">http://localhost:8080/short-url-goes-here</a>
     </p>
 </div>
+<!-- src/main/resources/templates/index.html -->
 
-<!-- --- NEWLY ADDED CODE END --- -->
+<!-- ... (all the HTML code from before the stats form) ... -->
+
+<hr>
+
+<h2>Check Link Statistics</h2>
+
+<form th:action="@{/check-stats}" method="POST">
+    <!-- ... (the stats form you already created) ... -->
+    <div>
+        <label for="checkShortCode">Enter a short code to check its stats:</label>
+    </div>
+    <div>
+        <input type="text" id="checkShortCode" name="checkShortCode" size="20" placeholder="e.g., aB1cDe" required>
+    </div>
+    <div>
+        <input type="submit" value="Check Stats">
+    </div>
+</form>
+
+<!-- --- NEWLY ADDED RESULTS DISPLAY START --- -->
+
+<!-- Case 1: Success. This block is rendered only if the "urlStats" object exists in the model. -->
+<div class="result" th:if="${urlStats != null}">
+    <h3>Statistics</h3>
+    <p><strong>Original URL:</strong> <span th:text="${urlStats.originalUrl}"></span></p>
+    <p><strong>Short URL:</strong> <a th:href="${urlStats.shortUrl}" th:text="${urlStats.shortUrl}" target="_blank"></a></p>
+    <p><strong>Created On:</strong> <span th:text="${#temporals.format(urlStats.creationDate, 'dd-MMM-yyyy HH:mm')}"></span></p>
+    <p><strong>Total Clicks:</strong> <span th:text="${urlStats.clickCount}"></span></p>
+</div>
+
+<!-- Case 2: Error. This block is rendered only if the "statsError" message exists in the model. -->
+<div class="result" style="background-color: #f8d7da; border-color: #f5c6cb;" th:if="${statsError != null}">
+    <p style="color: #721c24;" th:text="${statsError}"></p>
+</div>
+
+<!-- --- NEWLY ADDED RESULTS DISPLAY END --- -->
 
 </body>
 </html>
