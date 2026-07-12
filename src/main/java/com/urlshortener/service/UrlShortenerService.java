@@ -64,33 +64,35 @@ public class UrlShortenerService {
      * @return The final shortCode (either the custom alias or the generated one).
      */
         @Transactional
-        public String shortenUrl(String originalUrl, String customAlias) {
+        public String shortenUrl(String originalUrl, String customAlias, Integer hoursToExpire) {
 
             if (StringUtils.hasText(customAlias)) {
                 if (urlMappingRepository.findByShortCode(customAlias).isPresent()) {
                     throw new AliasAlreadyExistsException("Alias '" + customAlias + "' is already in use.");
                 }
-
                 UrlMapping newUrlMapping = new UrlMapping();
                 newUrlMapping.setOriginalUrl(originalUrl);
                 newUrlMapping.setCreationDate(LocalDateTime.now());
-                newUrlMapping.setShortCode(customAlias); // Use the user's provided alias
+                newUrlMapping.setShortCode(customAlias);
+
+                if (hoursToExpire != null) {
+                    newUrlMapping.setExpirationDate(LocalDateTime.now().plusHours(hoursToExpire));
+                }
                 urlMappingRepository.save(newUrlMapping);
                 return customAlias;
-            }
-
-            else {
+            } else {
                 UrlMapping urlMapping = new UrlMapping();
                 urlMapping.setOriginalUrl(originalUrl);
                 urlMapping.setCreationDate(LocalDateTime.now());
 
-                UrlMapping savedEntity = urlMappingRepository.save(urlMapping);
+                if (hoursToExpire != null) {
+                    urlMapping.setExpirationDate(LocalDateTime.now().plusHours(hoursToExpire));
+                }
 
+                UrlMapping savedEntity = urlMappingRepository.save(urlMapping);
                 String shortCode = encodeBase62(savedEntity.getId());
                 savedEntity.setShortCode(shortCode);
-
                 urlMappingRepository.save(savedEntity);
-
                 return shortCode;
             }
 
@@ -110,6 +112,10 @@ public class UrlShortenerService {
     public String getOriginalUrlAndIncrementClicks(String shortCode) {
         UrlMapping urlMapping = urlMappingRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("URL not found for short code: " + shortCode));
+
+        if (urlMapping.getExpirationDate() != null && urlMapping.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new UrlNotFoundException("This link has expired and is no longer active.");
+        }
 
         urlMapping.setClickCount(urlMapping.getClickCount() + 1);
         urlMappingRepository.save(urlMapping);

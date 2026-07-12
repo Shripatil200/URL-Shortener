@@ -44,9 +44,9 @@ public class PageController {
         model.addAttribute("originalUrl", longUrl);
 
         try {
-            String shortCode = urlShortenerService.shortenUrl(longUrl, customAlias);
-            String fullShortUrl = "http://localhost:8080/" + shortCode;
+            String shortCode = urlShortenerService.shortenUrl(longUrl, customAlias, null);
 
+            String fullShortUrl = "http://localhost:8080/" + shortCode;
             model.addAttribute("shortUrlResult", fullShortUrl);
 
         } catch (AliasAlreadyExistsException e) {

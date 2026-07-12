@@ -1,5 +1,6 @@
 package com.urlshortener.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 
@@ -13,12 +14,16 @@ import org.hibernate.validator.constraints.URL;
  * @param customAlias An OPTIONAL user-defined alias for the short URL.
  *                    If this is null or empty, the service will generate a random short code.
  *                    If it's provided, the service will attempt to use it as the short code.
+ * @param hoursToExpire An OPTIONAL time-to-live (TTL) in hours. If provided, the link
+ *                      will expire after this many hours. If null, the link is permanent.
  */
 public record ShortenUrlRequest (
         @NotEmpty(message = "URL cannot be empty")
 
         @URL(message="A valid URL format is required")
         String url,
-         String customAlias
+        String customAlias,
+        @Min(value = 1, message = "Hours to expire must be a positive number")
+        Integer hoursToExpire
 ){
 }

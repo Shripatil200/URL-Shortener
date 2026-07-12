@@ -60,7 +60,7 @@ public class UrlMapping {
      *       against error caused by exceptionally long URLs.
      */
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2048)
     private String originalUrl;
 
     /**
@@ -95,6 +95,17 @@ public class UrlMapping {
      */
 
     private long clickCount;
+
+    /**
+     * The timestamp indicating when this short link should expire and no longer be active.
+     * This field is nullable. A 'null' value signifies that the link does not have an expiration date
+     * and should be considered permanent.
+     *
+     * When the application starts, Spring Data JPA (via Hibernate) will see this new field
+     * and, if your 'spring.jpa.hibernate.ddl-auto' property is set to 'update', it will
+     * automatically add an 'expiration_date' column to your 'url_mapping' database table.
+     */
+    private LocalDateTime expirationDate;
 
 
 }
