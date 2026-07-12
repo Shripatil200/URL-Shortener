@@ -1,3 +1,18 @@
 spring:
   application:
     name: url-shortener
+  datasource:
+    url: jdbc:postgresql://db:5432/urlshortener
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # ===================================================================
+  # = JPA & HIBERNATE CONFIGURATION (Production)
+  # ===================================================================
+  jpa:
+    hibernate:
+
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
