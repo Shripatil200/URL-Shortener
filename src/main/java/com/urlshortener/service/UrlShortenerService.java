@@ -2,12 +2,14 @@ package com.urlshortener.service;
 
 // The 'stereotype' package contains annotations that define the role of beans.
 import com.urlshortener.dto.UrlStatsResponse;
+import com.urlshortener.exception.AliasAlreadyExistsException;
 import com.urlshortener.exception.UrlNotFoundException;
 import com.urlshortener.model.UrlMapping;
 import com.urlshortener.repository.UrlMappingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -61,22 +63,37 @@ public class UrlShortenerService {
      * @param customAlias An optional user-defined short code.
      * @return The final shortCode (either the custom alias or the generated one).
      */
-    @Transactional
-    public String shortenUrl(String originalUrl, String customAlias) {
+        @Transactional
+        public String shortenUrl(String originalUrl, String customAlias) {
 
-        UrlMapping urlMapping = new UrlMapping();
-        urlMapping.setOriginalUrl(originalUrl);
-        urlMapping.setCreationDate(LocalDateTime.now());
+            if (StringUtils.hasText(customAlias)) {
+                if (urlMappingRepository.findByShortCode(customAlias).isPresent()) {
+                    throw new AliasAlreadyExistsException("Alias '" + customAlias + "' is already in use.");
+                }
 
-        UrlMapping savedEntity = urlMappingRepository.save(urlMapping);
+                UrlMapping newUrlMapping = new UrlMapping();
+                newUrlMapping.setOriginalUrl(originalUrl);
+                newUrlMapping.setCreationDate(LocalDateTime.now());
+                newUrlMapping.setShortCode(customAlias); // Use the user's provided alias
+                urlMappingRepository.save(newUrlMapping);
+                return customAlias;
+            }
 
-        // This generated code will be our fallback if no custom alias is provided.
-        String shortCode = encodeBase62(savedEntity.getId());
-        savedEntity.setShortCode(shortCode);
+            else {
+                UrlMapping urlMapping = new UrlMapping();
+                urlMapping.setOriginalUrl(originalUrl);
+                urlMapping.setCreationDate(LocalDateTime.now());
 
-        urlMappingRepository.save(savedEntity);
+                UrlMapping savedEntity = urlMappingRepository.save(urlMapping);
 
-        return shortCode;
+                String shortCode = encodeBase62(savedEntity.getId());
+                savedEntity.setShortCode(shortCode);
+
+                urlMappingRepository.save(savedEntity);
+
+                return shortCode;
+            }
+
     }
 
 

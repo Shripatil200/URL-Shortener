@@ -2,6 +2,7 @@ package com.urlshortener.controller;
 
 
 import com.urlshortener.dto.UrlStatsResponse;
+import com.urlshortener.exception.AliasAlreadyExistsException;
 import com.urlshortener.exception.UrlNotFoundException;
 import com.urlshortener.service.UrlShortenerService;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +39,20 @@ public class PageController {
      *                This way, the user stays on the same page to see the result.
      */
     @PostMapping("/shorten-web")
-    public String handleShortenForm(@RequestParam("longUrl") String longUrl, Model model) {
+    public String handleShortenForm(@RequestParam("longUrl") String longUrl,@RequestParam(name = "customAlias", required = false) String customAlias, Model model) {
 
-        String shortCode = urlShortenerService.shortenUrl(longUrl, null);
-
-        String fullShortUrl = "http://localhost:8080/" + shortCode;
         model.addAttribute("originalUrl", longUrl);
-        model.addAttribute("shortUrlResult", fullShortUrl);
+
+        try {
+            String shortCode = urlShortenerService.shortenUrl(longUrl, customAlias);
+            String fullShortUrl = "http://localhost:8080/" + shortCode;
+
+            model.addAttribute("shortUrlResult", fullShortUrl);
+
+        } catch (AliasAlreadyExistsException e) {
+            model.addAttribute("aliasError", e.getMessage());
+        }
+
         return "index";
     }
 
@@ -64,7 +72,6 @@ public class PageController {
 
 
         try {
-
             UrlStatsResponse stats = urlShortenerService.getStats(shortCode);
             model.addAttribute("urlStats", stats);
         } catch (UrlNotFoundException e) {
