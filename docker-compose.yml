@@ -19,7 +19,9 @@ services:
       retries: 5
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Docker.yml # Make sure to point to your custom Dockerfile name!
     container_name: url-shortener-app
     depends_on:
       db:
@@ -28,6 +30,8 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=db       # This matches the database service name below
+      - DB_PORT=5432     # Inside the Docker network, use the internal port (5432)
       - DB_USERNAME=myuser
       - DB_PASSWORD=mypassword
 

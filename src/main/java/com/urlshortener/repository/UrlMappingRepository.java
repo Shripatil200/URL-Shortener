@@ -4,6 +4,7 @@ import com.urlshortener.model.UrlMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -44,4 +45,19 @@ public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
      * @return An Optional containing the UrlMapping if found, or an empty Optional otherwise.
      */
     Optional<UrlMapping> findByShortCode(String shortCode);
+
+    /**
+     * Defines a derived delete query for bulk deletion of expired URLs.
+     *
+     * Spring Data JPA will parse this method name and generate the corresponding
+     * JPQL/SQL 'DELETE' statement: "DELETE FROM UrlMapping u WHERE u.expirationDate < :now"
+     *
+     * This is a highly efficient way to perform a bulk delete, as it executes a single
+     * command in the database without fetching the entities into the application's memory first.
+     *
+     * @param now The timestamp to compare against. All URLs with an expirationDate
+     *            before this time will be deleted.
+     * @return The number of entities that were deleted. This is very useful for logging.
+     */
+    long deleteByExpirationDateBefore(LocalDateTime now);
 }

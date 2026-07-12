@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class PageController {
 
-    UrlShortenerService urlShortenerService;
+    private final UrlShortenerService urlShortenerService;
 
     @GetMapping("/")
     public String indexPage(){
